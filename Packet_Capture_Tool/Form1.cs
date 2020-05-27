@@ -25,31 +25,34 @@ namespace Packet_Capture_Tool
         int typeOfDecode = 0;
         string writeLine;
         bool stopCapture = false;
-        int filterMode = 0;
         bool decodeMode;
+
+        List<DetailPackage> packageDetailList;
 
         public Form1()
         {
             InitializeComponent();
-            this.button1.Click += new EventHandler(button1_Click);
-            this.button2.Click += new EventHandler(button2_Click);
-            this.button3.Click += new EventHandler(button3_Click);
-            this.button4.Click += new EventHandler(button4_Click);
-            this.radioButton1.CheckedChanged += new EventHandler(radioButton1_CheckedChanged);
-            this.radioButton2.CheckedChanged += new EventHandler(radioButton2_CheckedChanged);
-            this.radioButton3.CheckedChanged += new EventHandler(radioButton3_CheckedChanged);
+            button1.Click += new EventHandler(button1_Click);
+            button2.Click += new EventHandler(button2_Click);
+            button3.Click += new EventHandler(button3_Click);
+            button4.Click += new EventHandler(button4_Click);
+            radioButton1.CheckedChanged += new EventHandler(radioButton1_CheckedChanged);
+            radioButton2.CheckedChanged += new EventHandler(radioButton2_CheckedChanged);
+            radioButton3.CheckedChanged += new EventHandler(radioButton3_CheckedChanged);
             string displayText = get_Device_List();
             textBox1.Text = displayText;
             comboBox1.DataSource = captureDeviceList;
             button3.Enabled = false;
             button4.Enabled = false;
+            packageDetailList = new List<DetailPackage>();
+            new DetailPackage();
         }
 
         private string get_Device_List()
         {
             captureDeviceList = new List<string>();
-            string ver = SharpPcap.Version.VersionString;
-            string stringDevices = "SharpPcap {0}, Example1.IfList.cs" + ver;
+            var ver = SharpPcap.Version.VersionString;
+            var stringDevices = "SharpPcap {0}, Example1.IfList.cs" + ver;
             devices = CaptureDeviceList.Instance;
             if (devices.Count < 1)
             {
@@ -60,7 +63,7 @@ namespace Packet_Capture_Tool
             int count = 0;
             foreach (ICaptureDevice dev in devices)
             {
-                string device = count.ToString();
+                var device = count.ToString();
                 stringDevices = stringDevices + Environment.NewLine + "----------------------------------------------------------------------" + Environment.NewLine + "Device #" + device + ": " + dev.ToString();
                 captureDeviceList.Add(device);
                 count++;
@@ -71,11 +74,14 @@ namespace Packet_Capture_Tool
 
         private void button1_Click(object sender, EventArgs e)
         {
-            deviceIndex = (int)comboBox1.SelectedIndex;
-            isPromisc = (bool)checkBox1.Checked;
+            deviceIndex = comboBox1.SelectedIndex;
+            isPromisc = checkBox1.Checked;
             decodeMode = false;
-            Thread l = new Thread(new ThreadStart(listen_Start));
-            l.IsBackground = true;
+            Thread l = new Thread(new ThreadStart(listen_Start))
+            {
+                IsBackground = true
+            };
+
             l.Start();
         }
 
@@ -86,11 +92,14 @@ namespace Packet_Capture_Tool
 
         private void button3_Click(object sender, EventArgs e)
         {
-            deviceIndex = (int)comboBox1.SelectedIndex;
-            isPromisc = (bool)checkBox1.Checked;
+            deviceIndex = comboBox1.SelectedIndex;
+            isPromisc = checkBox1.Checked;
             decodeMode = true;
-            Thread l = new Thread(new ThreadStart(listen_Start));
-            l.IsBackground = true;
+            Thread l = new Thread(new ThreadStart(listen_Start))
+            {
+                IsBackground = true
+            };
+
             l.Start();
         }
         private void button4_Click(object sender, EventArgs e)
@@ -128,7 +137,7 @@ namespace Packet_Capture_Tool
         {
             ICaptureDevice device = devices[deviceIndex];
 
-            device.OnPacketArrival += new SharpPcap.PacketArrivalEventHandler(device_OnPacketArrival);
+            device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrival);
 
             int readTimeoutMilliseconds = 1000;
             if (isPromisc == true) {
@@ -146,18 +155,15 @@ namespace Packet_Capture_Tool
                 switch (typeOfDecode)
                 {
                     case 0:
-                        filterMode = 0;
                         break;
 
                     case 1:
                         filter = "ip and udp";
-                        filterMode = 1;
                         device.Filter = filter;
                         break;
 
                     case 2:
                         filter = "ip and tcp";
-                        filterMode = 2;
                         device.Filter = filter;
                         break;
                 }
@@ -184,39 +190,45 @@ namespace Packet_Capture_Tool
         private void device_OnPacketArrival(object sender, CaptureEventArgs packet)
         {
             Packet pack = Packet.ParsePacket(packet.Packet.LinkLayerType, packet.Packet.Data);
-            TcpPacket tcpPacket = TcpPacket.GetEncapsulated(pack);
+            TcpPacket tcpPacket = (TcpPacket) pack.Extract(typeof(TcpPacket));
 
             DateTime time = packet.Packet.Timeval.Date;
-            int len = packet.Packet.Data.Length;
+            int len = packet.Packet.Data.Length;            
 
             if (tcpPacket != null)
             {
-                IpPacket ipPacket = (IpPacket)tcpPacket.ParentPacket;
-                IPAddress srcIp = ipPacket.SourceAddress;
-                IPAddress dstIp = ipPacket.DestinationAddress;
-                ushort srcPort = tcpPacket.SourcePort;
-                ushort dstPort = tcpPacket.DestinationPort;
+                var packageDetail = new DetailPackage(tcpPacket, null);
+                packageDetailList.Add(packageDetail);
 
-                writeLine = (String.Format("TCP Packet: {0}:{1}:{2},{3} Len={4} {5}:{6} -> {7}:{8}",
+                IpPacket ipPacket = (IpPacket) tcpPacket.ParentPacket;
+                var srcIp = ipPacket.SourceAddress;
+                var dstIp = ipPacket.DestinationAddress;
+                var srcPort = tcpPacket.SourcePort;
+                var dstPort = tcpPacket.DestinationPort;
+                writeLine = string.Format("ID: {9} - {0}:{1}:{2},{3} - TCP Packet: {5}:{6}  -> {7}:{8}\n\n",
                                     time.Hour, time.Minute, time.Second, time.Millisecond, len,
-                                    srcIp, srcPort, dstIp, dstPort));
+                                    srcIp, srcPort, dstIp, dstPort, packageDetail.Id);
                 Invoke(new MethodInvoker(updateLog));
             }
             else
             {
-                UdpPacket udpPacket = UdpPacket.GetEncapsulated(pack);
+
+                UdpPacket udpPacket = (UdpPacket) pack.Extract(typeof(UdpPacket));
                 time = packet.Packet.Timeval.Date;
                 len = packet.Packet.Data.Length;
                 if (udpPacket != null)
                 {
+                    var packageDetail = new DetailPackage(null, udpPacket);
+                    packageDetailList.Add(packageDetail);
+
                     IpPacket ipPacket = (IpPacket)udpPacket.ParentPacket;
                     IPAddress srcIp = ipPacket.SourceAddress;
                     IPAddress dstIp = ipPacket.DestinationAddress;
                     ushort srcPort = udpPacket.SourcePort;
                     ushort dstPort = udpPacket.DestinationPort;
-                    writeLine = (String.Format("UDP Packet: {0}:{1}:{2},{3} Len={4} {5}:{6} -> {7}:{8}",
+                    writeLine = (string.Format("ID: {9} - {0}:{1}:{2},{3} - UDP Packet: {5}:{6} -> {7}:{8}\n",
                                     time.Hour, time.Minute, time.Second, time.Millisecond, len,
-                                    srcIp, srcPort, dstIp, dstPort));
+                                    srcIp, srcPort, dstIp, dstPort, packageDetail.Id));
                     Invoke(new MethodInvoker(updateLog));
                     if (decodeMode == true)
                     {
@@ -280,6 +292,11 @@ namespace Packet_Capture_Tool
         private void label4_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            new PackageDetailForm(packageDetailList).Show();
         }
     }
 }
