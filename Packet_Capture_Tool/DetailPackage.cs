@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Packet_Capture_Tool
 {
-    public class DetailPackage
+    public class PackageDetail
     {
         public int Id { get; private set; }
 
@@ -18,12 +18,12 @@ namespace Packet_Capture_Tool
 
         private static int _newId;
 
-        public DetailPackage()
+        public PackageDetail()
         {
             _newId = 0;
         }
 
-        public DetailPackage(TcpPacket tcpPacket, UdpPacket udpPacket)
+        public PackageDetail(TcpPacket tcpPacket, UdpPacket udpPacket)
         {
             Id = Interlocked.Increment(ref _newId);
             TcpPacket = tcpPacket;

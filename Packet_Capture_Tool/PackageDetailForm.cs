@@ -12,10 +12,10 @@ namespace Packet_Capture_Tool
 {
     public partial class PackageDetailForm : Form
     {
-        private readonly List<DetailPackage> DetailPackagesList;
+        private readonly List<PackageDetail> DetailPackagesList;
         
 
-        public PackageDetailForm(List<DetailPackage> detailPackages)
+        public PackageDetailForm(List<PackageDetail> detailPackages)
         {
             DetailPackagesList = detailPackages;
             InitializeComponent();
@@ -29,10 +29,24 @@ namespace Packet_Capture_Tool
                 int.TryParse(packageId.Text, out int correctParse);
                 if (correctParse.Equals(0)) return;
 
-                var package = DetailPackagesList.Find(x => x.Id.Equals(int.Parse(packageId.Text)));
-                Console.WriteLine(package);
+                PopulateScreen(DetailPackagesList.Find(x => x.Id.Equals(int.Parse(packageId.Text))));
+            }            
+        }
+
+        private void PopulateScreen(PackageDetail package)
+        {
+            checksumText.Text = package.TcpPacket.Checksum.ToString();
+            ackText.Text = package.TcpPacket.Ack ? "Sim" : "Não";
+            synText.Text = package.TcpPacket.Syn ? "Sim" : "Não";
+            windowsSizeText.Text = package.TcpPacket.WindowSize.ToString();
+
+            headerText.Text = "";
+            foreach (var bytes in package.TcpPacket.Header)
+            {
+                headerText.Text += bytes.ToString().PadLeft(4, '0') + " ";
             }
 
+            Console.WriteLine(package);
 
         }
     }

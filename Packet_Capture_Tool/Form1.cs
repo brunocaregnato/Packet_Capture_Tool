@@ -27,7 +27,7 @@ namespace Packet_Capture_Tool
         bool stopCapture = false;
         bool decodeMode;
 
-        List<DetailPackage> packageDetailList;
+        List<PackageDetail> packageDetailList;
 
         public Form1()
         {
@@ -44,8 +44,8 @@ namespace Packet_Capture_Tool
             comboBox1.DataSource = captureDeviceList;
             button3.Enabled = false;
             button4.Enabled = false;
-            packageDetailList = new List<DetailPackage>();
-            new DetailPackage();
+            packageDetailList = new List<PackageDetail>();
+            new PackageDetail();
         }
 
         private string get_Device_List()
@@ -197,7 +197,7 @@ namespace Packet_Capture_Tool
 
             if (tcpPacket != null)
             {
-                var packageDetail = new DetailPackage(tcpPacket, null);
+                var packageDetail = new PackageDetail(tcpPacket, null);
                 packageDetailList.Add(packageDetail);
 
                 IpPacket ipPacket = (IpPacket) tcpPacket.ParentPacket;
@@ -218,7 +218,7 @@ namespace Packet_Capture_Tool
                 len = packet.Packet.Data.Length;
                 if (udpPacket != null)
                 {
-                    var packageDetail = new DetailPackage(null, udpPacket);
+                    var packageDetail = new PackageDetail(null, udpPacket);
                     packageDetailList.Add(packageDetail);
 
                     IpPacket ipPacket = (IpPacket)udpPacket.ParentPacket;
