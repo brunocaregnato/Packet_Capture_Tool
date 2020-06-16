@@ -197,10 +197,11 @@ namespace Packet_Capture_Tool
 
             if (tcpPacket != null)
             {
-                var packageDetail = new PackageDetail(tcpPacket, null);
+                IpPacket ipPacket = (IpPacket) tcpPacket.ParentPacket;
+
+                var packageDetail = new PackageDetail(tcpPacket, null, ipPacket);
                 packageDetailList.Add(packageDetail);
 
-                IpPacket ipPacket = (IpPacket) tcpPacket.ParentPacket;
                 var srcIp = ipPacket.SourceAddress;
                 var dstIp = ipPacket.DestinationAddress;
                 var srcPort = tcpPacket.SourcePort;
@@ -218,10 +219,12 @@ namespace Packet_Capture_Tool
                 len = packet.Packet.Data.Length;
                 if (udpPacket != null)
                 {
-                    var packageDetail = new PackageDetail(null, udpPacket);
-                    packageDetailList.Add(packageDetail);
 
                     IpPacket ipPacket = (IpPacket)udpPacket.ParentPacket;
+
+                    var packageDetail = new PackageDetail(null, udpPacket, ipPacket);
+                    packageDetailList.Add(packageDetail);
+
                     IPAddress srcIp = ipPacket.SourceAddress;
                     IPAddress dstIp = ipPacket.DestinationAddress;
                     ushort srcPort = udpPacket.SourcePort;
