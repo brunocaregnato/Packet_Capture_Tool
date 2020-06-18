@@ -36,16 +36,26 @@ namespace Packet_Capture_Tool
 
         private void PopulateScreen(PackageDetail package)
         {
+            bool brokeLine = false;
+
             if (package.TcpPacket != null)
             {
                 foreach (var bytes in package.TcpPacket.Header)
                 {
                     headerText.Text += bytes.ToString().PadLeft(4, '0') + " ";
+                    if(headerText.Text.Count() > 100 && !brokeLine)
+                    {
+                        headerText.Text += "\n".PadRight(15, ' ');
+                        brokeLine = true;
+                    }
                 }
 
                 checksumText.Text += package.TcpPacket.Checksum.ToString();
                 windowsSizeText.Text += package.TcpPacket.WindowSize.ToString();
                 sequenceNumberText.Text += package.TcpPacket.SequenceNumber.ToString();
+                acknowledgmentNumberText.Text += package.TcpPacket.AcknowledgmentNumber.ToString();
+                dataOffsetText.Text += package.TcpPacket.DataOffset.ToString();
+
                 sourceAndDestinationText.Text += package.IpPacket.SourceAddress.ToString() + ":" + package.TcpPacket.SourcePort.ToString() 
                     + " -> Destination: " + package.IpPacket.DestinationAddress.ToString() + ":" + package.TcpPacket.DestinationPort.ToString();
 
@@ -76,6 +86,8 @@ namespace Packet_Capture_Tool
             windowsSizeText.Text = "Windows Size: ";
             sequenceNumberText.Text = "Sequence Number: ";
             sourceAndDestinationText.Text = "Source: ";
+            acknowledgmentNumberText.Text = "Acknowledgment Number: ";
+            acknowledgmentNumberText.Text = "Data Offset: ";
             flagsText.Text = "------------------------------------------------------------------------------------> FLAGS <------------------------------------------------------------------------------------";
         }
     }
