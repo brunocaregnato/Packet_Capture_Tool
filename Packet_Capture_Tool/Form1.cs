@@ -74,7 +74,7 @@ namespace Packet_Capture_Tool
 
         private void button1_Click(object sender, EventArgs e)
         {
-            deviceIndex = comboBox1.SelectedIndex;
+            deviceIndex = int.Parse(comboBox1.Text);
             isPromisc = checkBox1.Checked;
             decodeMode = false;
             Thread l = new Thread(new ThreadStart(listen_Start))
@@ -177,11 +177,14 @@ namespace Packet_Capture_Tool
             device.StartCapture();
             writeLine = "--- Listening For Packets ---";
             Invoke(new MethodInvoker(updateLog));
-            while (stopCapture == false)
+            while (!stopCapture)
             {
 
             }
+
+            device.StopCapture();
             device.Close();
+
             writeLine = " -- Capture stopped, device closed. --";
             Invoke(new MethodInvoker(updateLog));
             stopCapture = false;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PacketDotNet;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -36,47 +37,85 @@ namespace Packet_Capture_Tool
 
         private void PopulateScreen(PackageDetail package)
         {
-            bool brokeLine = false;
+            if(package == null)
+            {
+                MessageBox.Show("Package does not exist! Enter a valid package.", null, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             if (package.TcpPacket != null)
             {
-                foreach (var bytes in package.TcpPacket.Header)
-                {
-                    headerText.Text += bytes.ToString().PadLeft(4, '0') + " ";
-                    if(headerText.Text.Count() > 100 && !brokeLine)
-                    {
-                        headerText.Text += "\n".PadRight(15, ' ');
-                        brokeLine = true;
-                    }
-                }
+                packageType.Text = "TCP PACKET";
+                headerText.Text = SetHeader(package.TcpPacket.Header);
 
-                checksumText.Text += package.TcpPacket.Checksum.ToString();
+                checksumText.Text += package.TcpPacket.Checksum.ToString() + " - is " + BooleanToString(package.TcpPacket.ValidChecksum, 1); 
                 windowsSizeText.Text += package.TcpPacket.WindowSize.ToString();
                 sequenceNumberText.Text += package.TcpPacket.SequenceNumber.ToString();
                 acknowledgmentNumberText.Text += package.TcpPacket.AcknowledgmentNumber.ToString();
                 dataOffsetText.Text += package.TcpPacket.DataOffset.ToString();
 
-                sourceAndDestinationText.Text += package.IpPacket.SourceAddress.ToString() + ":" + package.TcpPacket.SourcePort.ToString() 
-                    + " -> Destination: " + package.IpPacket.DestinationAddress.ToString() + ":" + package.TcpPacket.DestinationPort.ToString();
+                sourceAndDestinationText.Text += SetAddress(package.IpPacket, package.TcpPacket);
 
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.CWR) + " -> Congestion Window Reduced (CWR): " + BooleanToString(package.TcpPacket.CWR, true);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.ECN) + " -> ECN-Echo: " + BooleanToString(package.TcpPacket.ECN, true);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Urg) + " -> Urgent: " + BooleanToString(package.TcpPacket.Urg, true);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Ack) + " -> Acknowledgment: " + BooleanToString(package.TcpPacket.Ack, true);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Psh) + " -> Push: " + BooleanToString(package.TcpPacket.Psh, true);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Rst) + " -> Reset: " + BooleanToString(package.TcpPacket.Rst, true);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Syn) + " -> Syn: " + BooleanToString(package.TcpPacket.Syn, true);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Fin) + " -> Fin: " + BooleanToString(package.TcpPacket.Fin, true);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.CWR) + " -> Congestion Window Reduced (CWR): " + BooleanToString(package.TcpPacket.CWR);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.ECN) + " -> ECN-Echo: " + BooleanToString(package.TcpPacket.ECN);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Urg) + " -> Urgent: " + BooleanToString(package.TcpPacket.Urg);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Ack) + " -> Acknowledgment: " + BooleanToString(package.TcpPacket.Ack);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Psh) + " -> Push: " + BooleanToString(package.TcpPacket.Psh);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Rst) + " -> Reset: " + BooleanToString(package.TcpPacket.Rst);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Syn) + " -> Syn: " + BooleanToString(package.TcpPacket.Syn);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Fin) + " -> Fin: " + BooleanToString(package.TcpPacket.Fin);
+
+            }
+            else if(package.UdpPacket != null)
+            {
+                packageType.Text = "UDP PACKET";
+                headerText.Text = SetHeader(package.UdpPacket.Header);
+
+                sourceAndDestinationText.Text += SetAddress(package.IpPacket, package.TcpPacket);
+
+                checksumText.Text += package.UdpPacket.Checksum.ToString() + " - is " + BooleanToString(package.UdpPacket.ValidChecksum, 1);
+
+                sourceAndDestinationText.Text += SetAddress(package.IpPacket, package.UdpPacket);
+
+                windowsSizeText.Text = sequenceNumberText.Text = acknowledgmentNumberText.Text = dataOffsetText.Text = flagsText.Text = "";
 
             }
         }
 
-        private string BooleanToString(bool isTrue, bool returnString = false)
+        private string BooleanToString(bool isTrue, int returnStringType = 0)
         {
-            if (returnString)
-                return isTrue ? "Set" : "Not Set";
+            switch (returnStringType)
+            {
+                case 0: 
+                        return isTrue ? "Set" : "Not Set";
+                case 1:
+                default: 
+                        return isTrue ? "valid" : "invalid";
+            }             
+        }
 
-            return isTrue ? "1" : "0";
+        private string SetHeader(byte[] header)
+        {
+            bool brokeLine = false;
+            string headerText = "";
+            foreach (var bytes in header)
+            {
+                headerText += bytes.ToString().PadLeft(4, '0') + " ";
+                if (headerText.Count() > 100 && !brokeLine)
+                {
+                    headerText += "\n".PadRight(15, ' ');
+                    brokeLine = true;
+                }
+            }
+
+            return headerText;
+        }
+
+        private string SetAddress(IpPacket ip, dynamic package)
+        {
+            return  ip.SourceAddress.ToString() + ":" + package.SourcePort.ToString()
+                    + " -> Destination: " + ip.DestinationAddress.ToString() + ":" + package.DestinationPort.ToString()
+                    + " - IP Version: " + ip.Version; ;
         }
 
         private void ClearScreen()
@@ -87,7 +126,7 @@ namespace Packet_Capture_Tool
             sequenceNumberText.Text = "Sequence Number: ";
             sourceAndDestinationText.Text = "Source: ";
             acknowledgmentNumberText.Text = "Acknowledgment Number: ";
-            acknowledgmentNumberText.Text = "Data Offset: ";
+            dataOffsetText.Text = "Data Offset: ";
             flagsText.Text = "------------------------------------------------------------------------------------> FLAGS <------------------------------------------------------------------------------------";
         }
     }
