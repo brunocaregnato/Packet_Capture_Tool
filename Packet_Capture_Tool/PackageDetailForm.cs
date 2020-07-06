@@ -46,7 +46,7 @@ namespace Packet_Capture_Tool
             if (package.TcpPacket != null)
             {
                 packageType.Text = "TCP PACKET";
-                headerText.Text = SetHeader(package.TcpPacket.Header);
+                headerText.Text += SetHeader(package.TcpPacket.Header);
 
                 checksumText.Text += package.TcpPacket.Checksum.ToString() + " - is " + BooleanToString(package.TcpPacket.ValidChecksum, 1); 
                 windowsSizeText.Text += package.TcpPacket.WindowSize.ToString();
@@ -56,29 +56,26 @@ namespace Packet_Capture_Tool
 
                 sourceAndDestinationText.Text += SetAddress(package.IpPacket, package.TcpPacket);
 
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.CWR) + " -> Congestion Window Reduced (CWR): " + BooleanToString(package.TcpPacket.CWR);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.ECN) + " -> ECN-Echo: " + BooleanToString(package.TcpPacket.ECN);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Urg) + " -> Urgent: " + BooleanToString(package.TcpPacket.Urg);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Ack) + " -> Acknowledgment: " + BooleanToString(package.TcpPacket.Ack);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Psh) + " -> Push: " + BooleanToString(package.TcpPacket.Psh);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Rst) + " -> Reset: " + BooleanToString(package.TcpPacket.Rst);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Syn) + " -> Syn: " + BooleanToString(package.TcpPacket.Syn);
-                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Fin) + " -> Fin: " + BooleanToString(package.TcpPacket.Fin);
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.CWR) + " -> Congestion Window Reduced (CWR)";
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.ECN) + " -> ECN-Echo";
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Urg) + " -> Urgent";
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Ack) + " -> Acknowledgment";
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Psh) + " -> Push";
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Rst) + " -> Reset";
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Syn) + " -> Syn";
+                flagsText.Text += "\n" + BooleanToString(package.TcpPacket.Fin) + " -> Fin";
 
             }
             else if(package.UdpPacket != null)
             {
                 packageType.Text = "UDP PACKET";
-                headerText.Text = SetHeader(package.UdpPacket.Header);
-
-                sourceAndDestinationText.Text += SetAddress(package.IpPacket, package.TcpPacket);
-
+                headerText.Text += SetHeader(package.UdpPacket.Header);
+                
                 checksumText.Text += package.UdpPacket.Checksum.ToString() + " - is " + BooleanToString(package.UdpPacket.ValidChecksum, 1);
 
                 sourceAndDestinationText.Text += SetAddress(package.IpPacket, package.UdpPacket);
 
                 windowsSizeText.Text = sequenceNumberText.Text = acknowledgmentNumberText.Text = dataOffsetText.Text = flagsText.Text = "";
-
             }
         }
 
@@ -127,7 +124,7 @@ namespace Packet_Capture_Tool
             sourceAndDestinationText.Text = "Source: ";
             acknowledgmentNumberText.Text = "Acknowledgment Number: ";
             dataOffsetText.Text = "Data Offset: ";
-            flagsText.Text = "------------------------------------------------------------------------------------> FLAGS <------------------------------------------------------------------------------------";
+            flagsText.Text = "--------------------------------------------------------------------------------------> FLAGS <--------------------------------------------------------------------------------------";
         }
     }
 }

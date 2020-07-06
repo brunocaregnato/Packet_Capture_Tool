@@ -113,7 +113,7 @@
             this.flagsText.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.flagsText.Location = new System.Drawing.Point(12, 162);
             this.flagsText.Name = "flagsText";
-            this.flagsText.Size = new System.Drawing.Size(569, 124);
+            this.flagsText.Size = new System.Drawing.Size(583, 124);
             this.flagsText.TabIndex = 20;
             this.flagsText.Text = "---------------------------------------------------------------------------------" +
     "---> FLAGS <--------------------------------------------------------------------" +
@@ -164,7 +164,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(584, 292);
+            this.ClientSize = new System.Drawing.Size(599, 292);
             this.Controls.Add(this.packageType);
             this.Controls.Add(this.dataOffsetText);
             this.Controls.Add(this.acknowledgmentNumberText);
